@@ -1,0 +1,42 @@
+import os
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from pathlib import Path
+import statistics as sts
+#from lmfit import Model
+from scipy.stats import sem
+
+# Variables for names and files
+split = 'LSB_07'
+metals = {'0G_13': 'Pt',
+          '0G_14' : 'Al',
+          '0G_15' : 'Mo',
+          '0G_16' : 'Cr',
+        }
+
+## Linear Fit
+#def line(x, m, b):
+#    return x * m + b
+#gmodel = Model(line)
+#param = gmodel.make_params()
+
+# Folder where the files are
+data_path = r'C:\Users\pmeuser\Desktop\Users\Rodrigo\LCR\0G_16'
+dict = {}
+r_dict = {}
+row_names = []
+for i in os.listdir(data_path):
+    files = os.listdir(os.path.join(data_path, i))
+    for j in files:
+        row_names.append(i + ' ' + j[:-4])
+        if '.txt' in j:
+            data = pd.read_csv(os.path.join(data_path, i, j))
+            dict[i] = (data['DC'], data['Idc'], data['Vds'])
+            fig, ax = plt.subplots(facecolor = 'white')
+            ax.set_title(i + ' ' + j[:-4])
+            ax.set_xlabel('Potential Vds (V)')
+            ax.set_ylabel('Current Ids (A)')
+            ax.scatter(dict[i][2], dict[i][1], s = 1)
+            lim = max(dict[i][1])
+            ax.set_ylim(-lim, lim)
