@@ -16,6 +16,7 @@ class Fit():
         cols_r = ['Contact Resistance', 'Sheet resistance', 'Conductivity ($\sigma$)', 'Sample']
         c = pd.DataFrame(columns = cols)
         results = pd.DataFrame(columns = cols_r)
+        
         n = 0
         for i in files:
             df = pd.read_csv(i, names = columns, skiprows = 1, sep = ';')
@@ -38,8 +39,9 @@ class Fit():
         sigma = 1 / (r_s * 0.2e-4)
         results.loc[sample_name] = [rc/2, r_s, sigma, 0]
         results.at[sample_name, 'Sample'] = sample_name
-        sns.scatterplot(data = c, x = cols[0], y = cols[1])
-        sns.lineplot(data = c, x = cols[0], y = r.best_fit)
+        plt.plot(c[cols[0]], r.best_fit)
+        sns.lineplot(data = c, x = cols[0], y = cols[1], marker = 'o', linestyle = '')
+        plt.xticks(np.arange(0,21,5) * 1e-4)
         return c, results
 
     def r_t(s, r_s, l_t, N, W, L):
