@@ -42,7 +42,6 @@ class Fit():
         sns.lineplot(data = c, x = cols[0], y = r.best_fit)
         return c, results
 
-
     def r_t(s, r_s, l_t, N, W, L):
         return (r_s * s / (N * W + (N-1) * (2 *s + L))) + (2 * r_s * l_t / (N * W + (N-1) * (2 *s + L)))
     gmodel5 = Model(r_t)
