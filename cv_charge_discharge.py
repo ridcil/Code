@@ -17,9 +17,9 @@ class Ec():
                 cv_files = [os.path.join(i, j) for j in os.listdir(i)] 
                 for x in cv_files:
                     cv = pd.read_csv(x, names = cols, sep = ';', skiprows=1, usecols=[0, 4])
-                    # sns.scatterplot(data = cv, x = cols[0], y = cols[1], edgecolor = None, s = 3, color = 'tab:blue')
-                    # plt.show()
-                    # plt.clf()
+                    sns.scatterplot(data = cv, x = cols[0], y = cols[1], edgecolor = None, s = 3, color = 'tab:blue')
+                    plt.show()
+                    plt.clf()
             elif 'delith' in i:
                 delith_files = [os.path.join(i, j) for j in os.listdir(i)]
                 Z = [[0,0],[0,0]]
@@ -52,8 +52,4 @@ class Ec():
                 sns.lineplot(data = lith, x = cols2[4], y = cols2[1], hue = 'Cycle', palette=palette, legend = False)
                 plt.colorbar(cbar).set_label('Cycle')
                 plt.show()
-
-
-sns.set_palette(palette)
-path = r'C:\Users\lopezb41\OneDrive - imec\Documents\Experiments\Data\Electrochemical\LSB_09\0I_07'
-Ec.Electrochem(path)
+                plt.clf()
