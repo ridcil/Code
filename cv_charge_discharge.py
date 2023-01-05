@@ -7,27 +7,32 @@ from scipy.stats import linregress
 import seaborn as sns
 
 palette = 'Blues_r'
-dpi = 200
+dpi = 100
 figsize = [10,3]
 cols = ['Potential vs Li$^+$/Li (V)','Current Density (A/cm$^2$)']
 cols2 = ['Time (s)', cols[0], 'Current (A)', 'Charge (C)', 'Capacity (mAh/cm$^3$)']
+
 class Ec():
     def Electrochem(path):
+        delith = pd.DataFrame()
+        lith = pd.DataFrame()
         files = [os.path.join(path, i)  for i in os.listdir(path) if i != 'README.txt']
         for i in files:
             if 'CV' in i:
                 cv_files = [os.path.join(i, j) for j in os.listdir(i)] 
                 for x in cv_files:
                     cv = pd.read_csv(x, names = cols, sep = ';', skiprows=1, usecols=[0, 4])
-                    fig, ax = plt.subplots(facecolor = 'white', dpi = dpi)
-                    sns.scatterplot(data = cv, x = cols[0], y = cols[1], edgecolor = None, s = 3, color = 'tab:blue')
+                fig, ax = plt.subplots(facecolor = 'white', dpi = dpi)
+                sns.scatterplot(data = cv, x = cols[0], y = cols[1], edgecolor = None, s = 3, color = 'tab:blue', ax = ax)
+                plt.show()
+                plt.clf()
             elif 'delith' in i:
                 delith_files = [os.path.join(i, j) for j in os.listdir(i)]
                 Z = [[0,0],[0,0]]
                 cbar = plt.contourf(Z, levels = np.arange(0, len(delith_files) + 1, 1), cmap=palette)
                 plt.clf()
                 n = 0
-                delith = pd.DataFrame()
+                
                 capacity_d = pd.DataFrame(columns = [cols2[4], 'Cycle'])
                 for x in delith_files:
                     dl = pd.read_csv(x, sep = ';', names = cols2, usecols=[1,2,3,4,5], skiprows = 1)
@@ -39,6 +44,9 @@ class Ec():
                 sns.lineplot(data = delith, x = cols2[4], y = cols2[1], hue = 'Cycle', palette=palette, legend = False, ax = ax[0])
                 plt.colorbar(cbar, ax = ax[0]).set_label('Cycle')
                 sns.scatterplot(data = capacity_d, x = 'Cycle', y = cols2[4], ax = ax[1])
+                plt.show()
+                plt.clf()
+                # plt.suptitle('Main title')
                 
             elif '\lith' in i:
                 lith_files = [os.path.join(i, j) for j in os.listdir(i)]
@@ -46,7 +54,7 @@ class Ec():
                 cbar = plt.contourf(Z, levels = np.arange(0, len(delith_files) + 1, 1), cmap=palette)
                 plt.clf()
                 n = 0
-                lith = pd.DataFrame()
+                
                 capacity = pd.DataFrame(columns = [cols2[4], 'Cycle'])
                 for x in lith_files:
                     l = pd.read_csv(x, sep = ';', names = cols2, usecols=[1,2,3,4,5], skiprows = 1)
@@ -58,6 +66,10 @@ class Ec():
                 sns.lineplot(data = lith, x = cols2[4], y = cols2[1], hue = 'Cycle', palette=palette, legend = False, ax = ax[0])
                 plt.colorbar(cbar, ax = ax[0]).set_label('Cycle')
                 sns.scatterplot(data = capacity, x = 'Cycle', y = cols2[4], ax = ax[1])
+                plt.show()
+                plt.clf()
+            
+        return delith, lith
 
     def fix_name(path):
         files = [os.path.join(path, i)  for i in os.listdir(path) if i != 'README.txt']
