@@ -23,7 +23,7 @@ class Ec():
                 for x in cv_files:
                     cv = pd.read_csv(x, names = cols, sep = ';', skiprows=1, usecols=[0, 4])
                 fig, ax = plt.subplots(facecolor = 'white', dpi = dpi)
-                sns.scatterplot(data = cv, x = cols[0], y = cols[1], edgecolor = None, s = 3, color = 'tab:blue', ax = ax)
+                sns.scatterplot(data = cv, x = cols[0], y = cols[1], edgecolor = None, s = 3, color = 'tab:purple', ax = ax)
                 plt.show()
                 plt.clf()
             elif 'delith' in i:
