@@ -6,8 +6,9 @@ from lmfit import Model
 from scipy.stats import linregress
 import seaborn as sns
 
-palette = 'Blues'
-dpi = 100
+palette = 'Blues_r'
+dpi = 200
+figsize = [10,3]
 cols = ['Potential vs Li$^+$/Li (V)','Current Density (A/cm$^2$)']
 cols2 = ['Time (s)', cols[0], 'Current (A)', 'Charge (C)', 'Capacity (mAh/cm$^3$)']
 class Ec():
@@ -27,14 +28,17 @@ class Ec():
                 plt.clf()
                 n = 0
                 delith = pd.DataFrame()
+                capacity_d = pd.DataFrame(columns = [cols2[4], 'Cycle'])
                 for x in delith_files:
                     dl = pd.read_csv(x, sep = ';', names = cols2, usecols=[1,2,3,4,5], skiprows = 1)
                     dl['Cycle'] = int(x[-6:-4])
                     delith = pd.concat([delith, dl])
+                    capacity_d.loc[n] = [max(dl[cols2[4]]), int(x[-6:-4])]
                     n += 1
-                fig, ax = plt.subplots(facecolor = 'white', dpi = dpi)
-                sns.lineplot(data = delith, x = cols2[4], y = cols2[1], hue = 'Cycle', palette=palette, legend = False)
-                plt.colorbar(cbar).set_label('Cycle')
+                fig, ax = plt.subplots(1, 2, facecolor = 'white', dpi = dpi, figsize = figsize, gridspec_kw={'width_ratios': [3, 2]})
+                sns.lineplot(data = delith, x = cols2[4], y = cols2[1], hue = 'Cycle', palette=palette, legend = False, ax = ax[0])
+                plt.colorbar(cbar, ax = ax[0]).set_label('Cycle')
+                sns.scatterplot(data = capacity_d, x = 'Cycle', y = cols2[4], ax = ax[1])
                 
             elif '\lith' in i:
                 lith_files = [os.path.join(i, j) for j in os.listdir(i)]
@@ -43,11 +47,22 @@ class Ec():
                 plt.clf()
                 n = 0
                 lith = pd.DataFrame()
+                capacity = pd.DataFrame(columns = [cols2[4], 'Cycle'])
                 for x in lith_files:
                     l = pd.read_csv(x, sep = ';', names = cols2, usecols=[1,2,3,4,5], skiprows = 1)
                     l['Cycle'] = int(x[-6:-4])
                     lith = pd.concat([lith, l])
+                    capacity.loc[n] = [max(l[cols2[4]]), int(x[-6:-4])]
                     n += 1
-                fig, ax = plt.subplots(facecolor = 'white', dpi = dpi)
-                sns.lineplot(data = lith, x = cols2[4], y = cols2[1], hue = 'Cycle', palette=palette, legend = False)
-                plt.colorbar(cbar).set_label('Cycle')
+                fig, ax = plt.subplots(1, 2, facecolor = 'white', dpi = dpi, figsize = figsize, gridspec_kw={'width_ratios': [3, 2]})
+                sns.lineplot(data = lith, x = cols2[4], y = cols2[1], hue = 'Cycle', palette=palette, legend = False, ax = ax[0])
+                plt.colorbar(cbar, ax = ax[0]).set_label('Cycle')
+                sns.scatterplot(data = capacity, x = 'Cycle', y = cols2[4], ax = ax[1])
+
+    def fix_name(path):
+        files = [os.path.join(path, i)  for i in os.listdir(path) if i != 'README.txt']
+        n = 1
+        for i in files:
+            if '_' in  i[-6]:
+                os.renames(i, i[:-5] + '0' + str(n) + '.txt')
+                n += 1             
