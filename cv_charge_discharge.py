@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 from lmfit import Model
 from scipy.stats import linregress
 import seaborn as sns
+from pathlib import Path
 
 palette = 'Blues_r'
 dpi = 100
@@ -16,7 +17,33 @@ class Ec():
     def Electrochem(path):
         delith = pd.DataFrame()
         lith = pd.DataFrame()
+        for i in os.listdir(path):
+            if 'CV' not in os.listdir(path):
+                os.mkdir(os.path.join(path, 'CV'))
+                os.mkdir(os.path.join(path, 'delith'))
+                os.mkdir(os.path.join(path, 'lith'))
+            if '_CV_' in i:
+                os.rename(os.path.join(path, i), os.path.join(path, 'CV', i))
+            elif '_delith_' in i:
+                os.rename(os.path.join(path, i), os.path.join(path, 'delith', i))
+            elif '_lith_' in i:
+                os.rename(os.path.join(path, i), os.path.join(path, 'lith', i))
+
+        f_delith = [os.path.join(path, 'delith', i)  for i in os.listdir(os.path.join(path, 'delith')) if i != 'README.txt']
+        f_lith = [os.path.join(path, 'lith', i)  for i in os.listdir(os.path.join(path, 'lith')) if i != 'README.txt']
+        m = 1
+        for i in f_delith:
+            if '_' in  i[-6]:
+                os.renames(i, i[:-5] + '0' + str(m) + '.txt')
+                m += 1 
+        m = 1
+        for i in f_lith:
+            if '_' in  i[-6]:
+                os.renames(i, i[:-5] + '0' + str(m) + '.txt')
+                m += 1 
+##############
         files = [os.path.join(path, i)  for i in os.listdir(path) if i != 'README.txt']
+
         for i in files:
             if 'CV' in i:
                 cv_files = [os.path.join(i, j) for j in os.listdir(i)] 
