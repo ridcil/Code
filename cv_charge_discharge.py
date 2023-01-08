@@ -7,11 +7,13 @@ from scipy.stats import linregress
 import seaborn as sns
 from pathlib import Path
 
-palette = 'Blues_r'
-dpi = 100
+palette = 'PuOr'
+dpi = 200
+linewidth = 1
 figsize = [10,3]
-cols = ['Potential vs Li$^+$/Li (V)','Current Density (A/cm$^2$)']
+cols = ['Potential vs Li$^+$/Li (V)','Current Density ($\mu$A/cm$^2$)']
 cols2 = ['Time (s)', cols[0], 'Current (A)', 'Charge (C)', 'Capacity (mAh/cm$^3$)']
+label = ''
 
 class Ec():
     def Electrochem(path):
@@ -47,10 +49,16 @@ class Ec():
         for i in files:
             if 'CV' in i:
                 cv_files = [os.path.join(i, j) for j in os.listdir(i)] 
+                fig, ax = plt.subplots(facecolor = 'white', dpi = dpi)
                 for x in cv_files:
                     cv = pd.read_csv(x, names = cols, sep = ';', skiprows=1, usecols=[0, 4])
-                fig, ax = plt.subplots(facecolor = 'white', dpi = dpi)
-                sns.scatterplot(data = cv, x = cols[0], y = cols[1], edgecolor = None, s = 3, color = 'tab:purple', ax = ax)
+                    cv[cols[1]] = cv[cols[1]] * 1e6 
+                    if '_Initial_' in x:
+                        label = 'Activation CV'
+                    else:
+                        label = 'Final CV'
+                    sns.scatterplot(data = cv, x = cols[0], y = cols[1], edgecolor = None, s = 3, ax = ax, label = label)         
+                ax.legend(markerscale = 5)
                 plt.show()
                 plt.clf()
             elif 'delith' in i:
@@ -90,7 +98,7 @@ class Ec():
                     capacity.loc[n] = [max(l[cols2[4]]), int(x[-6:-4])]
                     n += 1
                 fig, ax = plt.subplots(1, 2, facecolor = 'white', dpi = dpi, figsize = figsize, gridspec_kw={'width_ratios': [3, 2]})
-                sns.lineplot(data = lith, x = cols2[4], y = cols2[1], hue = 'Cycle', palette=palette, legend = False, ax = ax[0])
+                sns.lineplot(data = lith, x = cols2[4], y = cols2[1], hue = 'Cycle', palette=palette, legend = False, ax = ax[0], lw = linewidth)
                 plt.colorbar(cbar, ax = ax[0]).set_label('Cycle')
                 sns.scatterplot(data = capacity, x = 'Cycle', y = cols2[4], ax = ax[1])
                 plt.show()
@@ -105,3 +113,5 @@ class Ec():
             if '_' in  i[-6]:
                 os.renames(i, i[:-5] + '0' + str(n) + '.txt')
                 n += 1             
+    
+
