@@ -7,7 +7,7 @@ from scipy.stats import linregress
 import seaborn as sns
 from pathlib import Path
 
-palette = 'PuOr'
+palette = 'BuPu'
 dpi = 200
 linewidth = 1
 figsize = [10,3]
@@ -49,6 +49,7 @@ class Ec():
         for i in files:
             if 'CV' in i:
                 cv_files = [os.path.join(i, j) for j in os.listdir(i)] 
+                cv_files.sort(reverse = True)
                 fig, ax = plt.subplots(facecolor = 'white', dpi = dpi)
                 for x in cv_files:
                     cv = pd.read_csv(x, names = cols, sep = ';', skiprows=1, usecols=[0, 4])
@@ -59,6 +60,7 @@ class Ec():
                         label = 'Final CV'
                     sns.scatterplot(data = cv, x = cols[0], y = cols[1], edgecolor = None, s = 3, ax = ax, label = label)         
                 ax.legend(markerscale = 5)
+                plt.title(path[-5:])
                 plt.show()
                 plt.clf()
             elif 'delith' in i:
@@ -79,6 +81,7 @@ class Ec():
                 sns.lineplot(data = delith, x = cols2[4], y = cols2[1], hue = 'Cycle', palette=palette, legend = False, ax = ax[0])
                 plt.colorbar(cbar, ax = ax[0]).set_label('Cycle')
                 sns.scatterplot(data = capacity_d, x = 'Cycle', y = cols2[4], ax = ax[1])
+                plt.suptitle(path[-5:])
                 plt.show()
                 plt.clf()
                 # plt.suptitle('Main title')
@@ -101,6 +104,7 @@ class Ec():
                 sns.lineplot(data = lith, x = cols2[4], y = cols2[1], hue = 'Cycle', palette=palette, legend = False, ax = ax[0], lw = linewidth)
                 plt.colorbar(cbar, ax = ax[0]).set_label('Cycle')
                 sns.scatterplot(data = capacity, x = 'Cycle', y = cols2[4], ax = ax[1])
+                plt.suptitle(path[-5:])
                 plt.show()
                 plt.clf()
             
