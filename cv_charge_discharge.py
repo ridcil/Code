@@ -64,15 +64,15 @@ class Ec():
                     sns.scatterplot(data = cv, x = cols[0], y = cols[1], edgecolor = None, s = 3, ax = ax, label = label)         
                 ax.legend(markerscale = 5)
                 plt.title(path[-5:])
-                plt.show()
-                plt.clf()
+                # plt.show()
+                plt.close()
             elif 'delith' in i:
                 delith_files = [os.path.join(i, j) for j in os.listdir(i)]
                 Z = [[0,0],[0,0]]
                 cbar = plt.contourf(Z, levels = np.arange(0, len(delith_files) + 1, 1), cmap=palette)
                 plt.clf()
                 n = 0
-                capacity_d = pd.DataFrame(columns = [cols2[4], 'Cycle'])
+                capacity_d = pd.DataFrame(columns = [_cap, 'Cycle'])
                 for x in delith_files:
                     dl = pd.read_csv(x, sep = ';', names = cols2, usecols=[1,2,3,4,5], skiprows = 1)
                     dl['Cycle'] = int(x[-6:-4])
@@ -83,10 +83,10 @@ class Ec():
                 fig, ax = plt.subplots(1, 2, facecolor = 'white', dpi = dpi, figsize = figsize, gridspec_kw={'width_ratios': [3, 2]})
                 sns.lineplot(data = delith, x = _cap, y = cols2[1], hue = 'Cycle', palette=palette, legend = False, ax = ax[0], lw = linewidth)
                 plt.colorbar(cbar, ax = ax[0]).set_label('Cycle')
-                sns.scatterplot(data = capacity_d, x = 'Cycle', y = cols2[4], ax = ax[1])
+                sns.scatterplot(data = capacity_d, x = 'Cycle', y = _cap, ax = ax[1])
                 plt.suptitle(path[-5:])
-                plt.show()
-                plt.clf()
+                # plt.show()
+                plt.close()
                 
             elif '\lith' in i:
                 lith_files = [os.path.join(i, j) for j in os.listdir(i)]
@@ -94,7 +94,7 @@ class Ec():
                 cbar = plt.contourf(Z, levels = np.arange(0, len(lith_files) + 1, 1), cmap=palette)
                 plt.clf()
                 n = 0
-                capacity = pd.DataFrame(columns = [cols2[4], 'Cycle'])
+                capacity = pd.DataFrame(columns = [_cap, 'Cycle'])
                 for x in lith_files:
                     l = pd.read_csv(x, sep = ';', names = cols2, usecols=[1,2,3,4,5], skiprows = 1)
                     l['Cycle'] = int(x[-6:-4])
@@ -105,12 +105,12 @@ class Ec():
                 fig, ax = plt.subplots(1, 2, facecolor = 'white', dpi = dpi, figsize = figsize, gridspec_kw={'width_ratios': [3, 2]})
                 sns.lineplot(data = lith, x = _cap, y = cols2[1], hue = 'Cycle', palette=palette, legend = False, ax = ax[0], lw = linewidth)
                 plt.colorbar(cbar, ax = ax[0]).set_label('Cycle')
-                sns.scatterplot(data = capacity, x = 'Cycle', y = cols2[4], ax = ax[1])
+                sns.scatterplot(data = capacity, x = 'Cycle', y = _cap, ax = ax[1])
                 plt.suptitle(path[-5:])
-                plt.show()
-                plt.clf()
+                # plt.show()
+                plt.close()
             
-        return delith, lith
+        return capacity
 
     def fix_name(path):
         files = [os.path.join(path, i)  for i in os.listdir(path) if i != 'README.txt']
