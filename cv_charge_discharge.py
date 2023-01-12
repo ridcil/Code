@@ -7,16 +7,19 @@ from scipy.stats import linregress
 import seaborn as sns
 from pathlib import Path
 
-palette = 'BuPu'
+palette = 'BuPu_r'
 dpi = 200
 linewidth = 1
 figsize = [10,3]
 cols = ['Potential vs Li$^+$/Li (V)','Current Density ($\mu$A/cm$^2$)']
-cols2 = ['Time (s)', cols[0], 'Current (A)', 'Charge (C)', 'Capacity (mAh/cm$^3$)']
+cols2 = ['Time (s)', cols[0], 'Current (A)', 'Charge (C)', 'Capacity (mAh cm$^{-3}$)']
+_cap = 'Capacity (mAh/cm$^3$)'
 label = ''
 
+# capacity =  -1 * df['Charge (C)'] /3.6 / (0.63 * 1e-7 * thickness)
+
 class Ec():
-    def Electrochem(path):
+    def Electrochem(path, thickness):
         delith = pd.DataFrame()
         lith = pd.DataFrame()
         for i in os.listdir(path):
@@ -69,39 +72,38 @@ class Ec():
                 cbar = plt.contourf(Z, levels = np.arange(0, len(delith_files) + 1, 1), cmap=palette)
                 plt.clf()
                 n = 0
-                
                 capacity_d = pd.DataFrame(columns = [cols2[4], 'Cycle'])
                 for x in delith_files:
                     dl = pd.read_csv(x, sep = ';', names = cols2, usecols=[1,2,3,4,5], skiprows = 1)
                     dl['Cycle'] = int(x[-6:-4])
-                    delith = pd.concat([delith, dl])
-                    capacity_d.loc[n] = [max(dl[cols2[4]]), int(x[-6:-4])]
+                    delith = pd.concat([delith, dl], ignore_index=True)
+                    capacity_d.loc[n] = [max(dl[cols2[3]]) /3.6 / (0.63 * 1e-7 * thickness), int(x[-6:-4])]
                     n += 1
+                delith[_cap] = delith[cols2[3]] /3.6 / (0.63 * 1e-7 * thickness)
                 fig, ax = plt.subplots(1, 2, facecolor = 'white', dpi = dpi, figsize = figsize, gridspec_kw={'width_ratios': [3, 2]})
-                sns.lineplot(data = delith, x = cols2[4], y = cols2[1], hue = 'Cycle', palette=palette, legend = False, ax = ax[0])
+                sns.lineplot(data = delith, x = _cap, y = cols2[1], hue = 'Cycle', palette=palette, legend = False, ax = ax[0], lw = linewidth)
                 plt.colorbar(cbar, ax = ax[0]).set_label('Cycle')
                 sns.scatterplot(data = capacity_d, x = 'Cycle', y = cols2[4], ax = ax[1])
                 plt.suptitle(path[-5:])
                 plt.show()
                 plt.clf()
-                # plt.suptitle('Main title')
                 
             elif '\lith' in i:
                 lith_files = [os.path.join(i, j) for j in os.listdir(i)]
                 Z = [[0,0],[0,0]]
-                cbar = plt.contourf(Z, levels = np.arange(0, len(delith_files) + 1, 1), cmap=palette)
+                cbar = plt.contourf(Z, levels = np.arange(0, len(lith_files) + 1, 1), cmap=palette)
                 plt.clf()
                 n = 0
-                
                 capacity = pd.DataFrame(columns = [cols2[4], 'Cycle'])
                 for x in lith_files:
                     l = pd.read_csv(x, sep = ';', names = cols2, usecols=[1,2,3,4,5], skiprows = 1)
                     l['Cycle'] = int(x[-6:-4])
-                    lith = pd.concat([lith, l])
-                    capacity.loc[n] = [max(l[cols2[4]]), int(x[-6:-4])]
+                    lith = pd.concat([lith, l], ignore_index = True)
+                    capacity.loc[n] = [-1 * min(l[cols2[3]]) /3.6 / (0.63 * 1e-7 * thickness), int(x[-6:-4])]
                     n += 1
+                lith[_cap] = -1 * lith[cols2[3]] /3.6 / (0.63 * 1e-7 * thickness)
                 fig, ax = plt.subplots(1, 2, facecolor = 'white', dpi = dpi, figsize = figsize, gridspec_kw={'width_ratios': [3, 2]})
-                sns.lineplot(data = lith, x = cols2[4], y = cols2[1], hue = 'Cycle', palette=palette, legend = False, ax = ax[0], lw = linewidth)
+                sns.lineplot(data = lith, x = _cap, y = cols2[1], hue = 'Cycle', palette=palette, legend = False, ax = ax[0], lw = linewidth)
                 plt.colorbar(cbar, ax = ax[0]).set_label('Cycle')
                 sns.scatterplot(data = capacity, x = 'Cycle', y = cols2[4], ax = ax[1])
                 plt.suptitle(path[-5:])
@@ -116,6 +118,5 @@ class Ec():
         for i in files:
             if '_' in  i[-6]:
                 os.renames(i, i[:-5] + '0' + str(n) + '.txt')
-                n += 1             
-    
-
+                n += 1  
+           
