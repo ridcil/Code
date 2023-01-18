@@ -5,7 +5,6 @@ import matplotlib.pyplot as plt
 from lmfit import Model
 from scipy.stats import linregress
 import seaborn as sns
-from pathlib import Path
 
 palette = 'BuPu_r'
 dpi = 200
@@ -16,10 +15,8 @@ cols2 = ['Time (s)', cols[0], 'Current (A)', 'Charge (C)', 'Capacity (mAh cm$^{-
 _cap = 'Capacity (mAh/cm$^3$)'
 label = ''
 
-# capacity =  -1 * df['Charge (C)'] /3.6 / (0.63 * 1e-7 * thickness)
-
 class Ec():
-    def Electrochem(path, thickness):
+    def Electrochem(path, save_path, thickness):
         delith = pd.DataFrame()
         lith = pd.DataFrame()
         for i in os.listdir(path):
@@ -94,12 +91,13 @@ class Ec():
                 cbar = plt.contourf(Z, levels = np.arange(0, len(lith_files) + 1, 1), cmap=palette)
                 plt.clf()
                 n = 0
-                capacity = pd.DataFrame(columns = [_cap, 'Cycle'])
+                capacity = pd.DataFrame(columns = [_cap, 'Cycle', 'Sample'])
                 for x in lith_files:
                     l = pd.read_csv(x, sep = ';', names = cols2, usecols=[1,2,3,4,5], skiprows = 1)
                     l['Cycle'] = int(x[-6:-4])
                     lith = pd.concat([lith, l], ignore_index = True)
-                    capacity.loc[n] = [-1 * min(l[cols2[3]]) /3.6 / (0.63 * 1e-7 * thickness), int(x[-6:-4])]
+                    capacity.loc[n] = [-1 * min(l[cols2[3]]) /3.6 / (0.63 * 1e-7 * thickness), int(x[-6:-4]), path[-5:]]
+                    final_file = pd.concat([final_file, capacity])
                     n += 1
                 lith[_cap] = -1 * lith[cols2[3]] /3.6 / (0.63 * 1e-7 * thickness)
                 fig, ax = plt.subplots(1, 2, facecolor = 'white', dpi = dpi, figsize = figsize, gridspec_kw={'width_ratios': [3, 2]})
@@ -109,7 +107,6 @@ class Ec():
                 plt.suptitle(path[-5:])
                 # plt.show()
                 plt.close()
-            
         return capacity
 
     def fix_name(path):
