@@ -29,12 +29,12 @@ param5['N'].set(value = 60, vary = False)
 
 class contact_resistance():
 
-    def resistance(path, thickness):
+    def resistance(path, thickness, name):
         col = ['Potential (V)', 'Current (A)']
         col2 = ['Spacing (cm)', 'Resistance ($\Omega$)', 'Structure', 'Sample']
         spacing = [2e-4, 5e-4, 10e-4, 20e-4]
         files = [os.path.join(path, i) for i in os.listdir(path)  if 'README.txt' != i]
-        sample = path[-5:]
+        # sample = path[-5:]
         resistance = pd.DataFrame(columns = col2)
         files.sort(key = (lambda x: x[-6:-4])) # sort files by last part of string
         n = 0
@@ -42,7 +42,7 @@ class contact_resistance():
             df = pd.read_csv(i, names = col, sep = ';', skiprows = 1, usecols=[0,1])
             r = gmodel.fit(df[col[1]], param1, x = df[col[0]])
             slope = r.best_values['m']
-            resistance.loc[n] = [spacing[n], 1/ slope, i[-10:-4], sample]
+            resistance.loc[n] = [spacing[n], 1/ slope, i[-10:-4], name]
             n += 1 
         
         result = gmodel5.fit(resistance[col2[1]], param5, s = resistance[col2[0]])
@@ -50,7 +50,7 @@ class contact_resistance():
         rs = result.values['r_s']
         sigma = 1/  (rs * thickness * 1e-7)
 
-        # Plots
-        sns.scatterplot(data = resistance, x = col2[0], y = col2[1], hue = 'Sample')
-        # plt.plot(resistance[col2[0]], result.best_fit)
-        return resistance
+        plt.plot(resistance[col2[0]], result.best_fit)
+        return resistance, (rs, rc2/2, sigma, name)
+
+

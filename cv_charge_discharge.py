@@ -92,11 +92,12 @@ class Ec():
                 plt.clf()
                 n = 0
                 capacity = pd.DataFrame(columns = [_cap, 'Cycle', 'Sample'])
+                final_file = pd.DataFrame()
                 for x in lith_files:
                     l = pd.read_csv(x, sep = ';', names = cols2, usecols=[1,2,3,4,5], skiprows = 1)
                     l['Cycle'] = int(x[-6:-4])
                     lith = pd.concat([lith, l], ignore_index = True)
-                    capacity.loc[n] = [-1 * min(l[cols2[3]]) /3.6 / (0.63 * 1e-7 * thickness), int(x[-6:-4]), path[-5:]]
+                    capacity.loc[n] = [-1 * min(l[cols2[3]]) /3.6 / (0.63 * 1e-7 * thickness), int(x[-6:-4]), path[-5:]] # capacity equation. capacity = charge / 3.6 / area * thickness (cm)
                     final_file = pd.concat([final_file, capacity])
                     n += 1
                 lith[_cap] = -1 * lith[cols2[3]] /3.6 / (0.63 * 1e-7 * thickness)
