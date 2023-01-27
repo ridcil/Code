@@ -6,20 +6,20 @@ from lmfit import Model
 from scipy.stats import linregress
 import seaborn as sns
 
-palette = 'BuPu_r'
-dpi = 200
+palette = 'BuPu_r' # Theme for plot
+dpi = 200 
 linewidth = 1
 figsize = [10,3]
 cols = ['Potential vs Li$^+$/Li (V)','Current Density ($\mu$A/cm$^2$)']
 cols2 = ['Time (s)', cols[0], 'Current (A)', 'Charge (C)', 'Capacity (mAh cm$^{-3}$)']
 _cap = 'Capacity (mAh/cm$^3$)'
-label = ''
+# label = ''
 
 class Ec():
-    def Electrochem(path, save_path, thickness):
+    def Electrochem(path, thickness):
         delith = pd.DataFrame()
         lith = pd.DataFrame()
-        for i in os.listdir(path):
+        for i in os.listdir(path):                          # make 3 folders in path: CV, delith, lith to separate files
             if 'CV' not in os.listdir(path):
                 os.mkdir(os.path.join(path, 'CV'))
                 os.mkdir(os.path.join(path, 'delith'))
@@ -30,7 +30,6 @@ class Ec():
                 os.rename(os.path.join(path, i), os.path.join(path, 'delith', i))
             elif '_lith_' in i:
                 os.rename(os.path.join(path, i), os.path.join(path, 'lith', i))
-
         f_delith = [os.path.join(path, 'delith', i)  for i in os.listdir(os.path.join(path, 'delith')) if i != 'README.txt']
         f_lith = [os.path.join(path, 'lith', i)  for i in os.listdir(os.path.join(path, 'lith')) if i != 'README.txt']
         m = 1
@@ -43,10 +42,10 @@ class Ec():
             if '_' in  i[-6]:
                 os.renames(i, i[:-5] + '0' + str(m) + '.txt')
                 m += 1 
-##############
         files = [os.path.join(path, i)  for i in os.listdir(path) if i != 'README.txt']
 
-        for i in files:
+        # Plot CV, actiation and final together if both are available
+        for i in files:                             
             if 'CV' in i:
                 cv_files = [os.path.join(i, j) for j in os.listdir(i)] 
                 cv_files.sort(reverse = True)
@@ -61,20 +60,22 @@ class Ec():
                     sns.scatterplot(data = cv, x = cols[0], y = cols[1], edgecolor = None, s = 3, ax = ax, label = label)         
                 ax.legend(markerscale = 5)
                 plt.title(path[-5:])
-                # plt.show()
+                plt.show()                      # You can skip this line if you dont want thge Cv plot
                 plt.close()
+                
+        # Plot delith profiles
             elif 'delith' in i:
                 delith_files = [os.path.join(i, j) for j in os.listdir(i)]
-                Z = [[0,0],[0,0]]
+                Z = [[0,0],[0,0]]                                                                       # Creates color bar
                 cbar = plt.contourf(Z, levels = np.arange(0, len(delith_files) + 1, 1), cmap=palette)
                 plt.clf()
                 n = 0
-                capacity_d = pd.DataFrame(columns = [_cap, 'Cycle'])
+                capacity_d = pd.DataFrame(columns = [_cap, 'Cycle'])    # empty dataframe to allocate calculated capacity
                 for x in delith_files:
                     dl = pd.read_csv(x, sep = ';', names = cols2, usecols=[1,2,3,4,5], skiprows = 1)
                     dl['Cycle'] = int(x[-6:-4])
-                    delith = pd.concat([delith, dl], ignore_index=True)
-                    capacity_d.loc[n] = [max(dl[cols2[3]]) /3.6 / (0.63 * 1e-7 * thickness), int(x[-6:-4])]
+                    delith = pd.concat([delith, dl], ignore_index=True) # appending to data frame
+                    capacity_d.loc[n] = [max(dl[cols2[3]]) /3.6 / (0.63 * 1e-7 * thickness), int(x[-6:-4])] # calculated capacity
                     n += 1
                 delith[_cap] = delith[cols2[3]] /3.6 / (0.63 * 1e-7 * thickness)
                 fig, ax = plt.subplots(1, 2, facecolor = 'white', dpi = dpi, figsize = figsize, gridspec_kw={'width_ratios': [3, 2]})
@@ -82,9 +83,10 @@ class Ec():
                 plt.colorbar(cbar, ax = ax[0]).set_label('Cycle')
                 sns.scatterplot(data = capacity_d, x = 'Cycle', y = _cap, ax = ax[1])
                 plt.suptitle(path[-5:])
-                # plt.show()
+                plt.show()                      # You can skip this line if you dont want thge Cv plot
                 plt.close()
-                
+            
+            # Same as above but for lithiation profiles
             elif '\lith' in i:
                 lith_files = [os.path.join(i, j) for j in os.listdir(i)]
                 Z = [[0,0],[0,0]]
@@ -106,15 +108,7 @@ class Ec():
                 plt.colorbar(cbar, ax = ax[0]).set_label('Cycle')
                 sns.scatterplot(data = capacity, x = 'Cycle', y = _cap, ax = ax[1])
                 plt.suptitle(path[-5:])
-                # plt.show()
+                plt.show()
                 plt.close()
-        return capacity
-
-    def fix_name(path):
-        files = [os.path.join(path, i)  for i in os.listdir(path) if i != 'README.txt']
-        n = 1
-        for i in files:
-            if '_' in  i[-6]:
-                os.renames(i, i[:-5] + '0' + str(n) + '.txt')
-                n += 1  
-           
+                
+        return capacity     # Returns Data frame with lithiation data (capacity, cycle, sample)
