@@ -60,7 +60,7 @@ class Ec():
                     sns.scatterplot(data = cv, x = cols[0], y = cols[1], edgecolor = None, s = 3, ax = ax, label = label)         
                 ax.legend(markerscale = 5)
                 plt.title(path[-5:])
-                plt.show()                      # You can skip this line if you dont want thge Cv plot
+                # plt.show()                      # You can skip this line if you dont want thge Cv plot
                 plt.close()
                 
         # Plot delith profiles
@@ -83,7 +83,7 @@ class Ec():
                 plt.colorbar(cbar, ax = ax[0]).set_label('Cycle')
                 sns.scatterplot(data = capacity_d, x = 'Cycle', y = _cap, ax = ax[1])
                 plt.suptitle(path[-5:])
-                plt.show()                      # You can skip this line if you dont want thge Cv plot
+                # plt.show()                      # You can skip this line if you dont want thge Cv plot
                 plt.close()
             
             # Same as above but for lithiation profiles
@@ -108,7 +108,7 @@ class Ec():
                 plt.colorbar(cbar, ax = ax[0]).set_label('Cycle')
                 sns.scatterplot(data = capacity, x = 'Cycle', y = _cap, ax = ax[1])
                 plt.suptitle(path[-5:])
-                plt.show()
+                # plt.show()
                 plt.close()
                 
         return capacity     # Returns Data frame with lithiation data (capacity, cycle, sample)
