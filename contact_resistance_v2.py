@@ -65,21 +65,5 @@ class idea():
             r = pd.concat([r, df])
             
             n += 1
-          
-        
-        # result = gmodel5.fit(r_aut[col_r[1]], param5, s = r_aut[col_r[0]])
-        # rc2 = gmodel5.eval(result.params, s = 0)
-        # rs = result.values['r_s']
-        # sigma = 1/  (rs * thickness * 1e-7)
-        # values.loc[0] = [rs, rc2 / 2, sigma]
-        # r_aut['Fit'] = result.best_fit
-        # r_aut['Sample'] = sample
-        
-        # Plots
-        # fig, ax = plt.subplots(dpi = 100)
-        # sns.scatterplot(data = r_aut, x = col_r[0], y = col_r[1])
-        # ax.plot(r_aut[col_r[0]], result.best_fit)
-        # ax.xaxis.set_major_formatter(lambda x, pos: '{:.0f}'.format(x * 1e4))
-        # ax.yaxis.set_major_formatter(lambda x, pos: '{:.0f}'.format(x / 1e6))
-        
+        values.sort_values(by=['Column'])
         return df_aut, r, values
