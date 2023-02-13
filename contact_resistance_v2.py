@@ -22,10 +22,11 @@ param5['N'].set(value = 60, vary = False)
 
 col_aut = ['Potential (V)', 'Current (A)', 'Time (s)']
 col_r = ['Spacing ($\mu$m)', 'Resistance (M$\Omega$)', 'Column']
-col_v = ['Sheet resistance ($\Omega$/sq)', 'Contact resistance ($\Omega$/sq)', 'Conductivity (S/cm)']
+col_v = ['Sheet resistance ($\Omega$/sq)', 'Contact resistance ($\Omega$/sq)', 'Conductivity (S/cm)', 'Column', 'Sample']
         
 class idea():
-    def fit(files, thickness):
+    
+    def fit(files, thickness, sample):
         df_aut = pd.DataFrame()
         r_aut = pd.DataFrame(columns = col_r)
         values = pd.DataFrame(columns = col_v)
@@ -49,12 +50,31 @@ class idea():
             df_aut = pd.concat([df_aut, df])
             n += 1
 
-        result = gmodel5.fit(r_aut[col_r[1]], param5, s = r_aut[col_r[0]])
-        rc2 = gmodel5.eval(result.params, s = 0)
-        rs = result.values['r_s']
-        sigma = 1/  (rs * thickness * 1e-7)
-        values.loc[0] = [rs, rc2 / 2, sigma]
-        r_aut['Fit'] = result.best_fit
+        c = list(set([i[-10:-8] for i in files]))
+        r = pd.DataFrame() 
+        n = 0
+        for i in c:
+            df = r_aut[r_aut.Column == i]
+            result = gmodel5.fit(df[col_r[1]], param5, s = df[col_r[0]])
+            rc2 = gmodel5.eval(result.params, s = 0)
+            rs = result.values['r_s']
+            sigma = 1/  (rs * thickness * 1e-7)
+            df.loc[:,('Fit')] = result.best_fit
+            df['Sample'] = sample
+            values.loc[n] = [rs, rc2 / 2, sigma, i, sample]
+            r = pd.concat([r, df])
+            
+            n += 1
+          
+        
+        # result = gmodel5.fit(r_aut[col_r[1]], param5, s = r_aut[col_r[0]])
+        # rc2 = gmodel5.eval(result.params, s = 0)
+        # rs = result.values['r_s']
+        # sigma = 1/  (rs * thickness * 1e-7)
+        # values.loc[0] = [rs, rc2 / 2, sigma]
+        # r_aut['Fit'] = result.best_fit
+        # r_aut['Sample'] = sample
+        
         # Plots
         # fig, ax = plt.subplots(dpi = 100)
         # sns.scatterplot(data = r_aut, x = col_r[0], y = col_r[1])
@@ -62,4 +82,4 @@ class idea():
         # ax.xaxis.set_major_formatter(lambda x, pos: '{:.0f}'.format(x * 1e4))
         # ax.yaxis.set_major_formatter(lambda x, pos: '{:.0f}'.format(x / 1e6))
         
-        return df_aut, r_aut, values
+        return df_aut, r, values
