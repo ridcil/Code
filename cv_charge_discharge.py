@@ -60,6 +60,7 @@ class Ec():
                     sns.scatterplot(data = cv, x = cols[0], y = cols[1], edgecolor = None, s = 3, ax = ax, label = label)         
                 ax.legend(markerscale = 5)
                 plt.title(path[-5:])
+                plt.xlim(3.3,4.5)
                 # plt.show()                      # You can skip this line if you dont want thge Cv plot
                 plt.close()
                 
@@ -108,7 +109,19 @@ class Ec():
                 plt.colorbar(cbar, ax = ax[0]).set_label('Cycle')
                 sns.scatterplot(data = capacity, x = 'Cycle', y = _cap, ax = ax[1])
                 plt.suptitle(path[-5:])
-                # plt.show()
+                plt.show()
                 plt.close()
+                
+                # fig, ax = plt.subplots(dpi = dpi)
+                # sns.lineplot(data = lith, x = cols2[0], y = cols2[1], hue = 'Cycle', palette=palette)
+                # plt.suptitle(path[-5:])
+                # plt.show()
+                # plt.close()
+                
+                # fig, ax = plt.subplots(dpi = dpi)
+                # sns.lineplot(data = lith, x = cols2[0], y = cols2[2])
+                # plt.suptitle(path[-5:])
+                # plt.show()
+                # plt.close()
                 
         return capacity     # Returns Data frame with lithiation data (capacity, cycle, sample)

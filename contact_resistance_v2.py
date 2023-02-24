@@ -47,6 +47,7 @@ class idea():
             elif i[-5:-4] == '4':
                 df['Spacing ($\mu$m)'] = 20e-4
                 r_aut.loc[n] = [20e-4, 1/slope, i[-10:-8]]
+            df['Column'] = i[-10:-8]
             df_aut = pd.concat([df_aut, df])
             n += 1
 
@@ -54,7 +55,7 @@ class idea():
         r = pd.DataFrame() 
         n = 0
         for i in c:
-            df = r_aut[r_aut.Column == i]
+            df = r_aut.loc[r_aut.Column == i].copy() # Specify that you are working with a copy, otherwise you get SettingWithCopyWarning
             result = gmodel5.fit(df[col_r[1]], param5, s = df[col_r[0]])
             rc2 = gmodel5.eval(result.params, s = 0)
             rs = result.values['r_s']
@@ -63,7 +64,8 @@ class idea():
             df['Sample'] = sample
             values.loc[n] = [rs, rc2 / 2, sigma, i, sample]
             r = pd.concat([r, df])
-            
-            n += 1
+        
+            n += 1     
+        
         values.sort_values(by=['Column'])
         return df_aut, r, values
