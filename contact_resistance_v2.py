@@ -22,7 +22,7 @@ param5['N'].set(value = 60, vary = False)
 
 col_aut = ['Potential (V)', 'Current (A)', 'Time (s)']
 col_r = ['Spacing ($\mu$m)', 'Resistance (M$\Omega$)', 'Column']
-col_v = ['Sheet resistance ($\Omega$/sq)', 'Contact resistance ($\Omega$/sq)', 'Conductivity (S/cm)', 'Column', 'Sample']
+col_v = ['Sheet resistance ($\Omega$/sq)', 'Contact resistance ($\Omega$/sq)', 'Conductivity (S/cm)', 'Sample']
         
 class idea():
     
@@ -51,21 +51,42 @@ class idea():
             df_aut = pd.concat([df_aut, df])
             n += 1
 
-        c = list(set([i[-10:-8] for i in files]))
-        r = pd.DataFrame() 
-        n = 0
-        for i in c:
-            df = r_aut.loc[r_aut.Column == i].copy() # Specify that you are working with a copy, otherwise you get SettingWithCopyWarning
-            result = gmodel5.fit(df[col_r[1]], param5, s = df[col_r[0]])
-            rc2 = gmodel5.eval(result.params, s = 0)
-            rs = result.values['r_s']
-            sigma = 1/  (rs * thickness * 1e-7)
-            df.loc[:,('Fit')] = result.best_fit
-            df['Sample'] = sample
-            values.loc[n] = [rs, rc2 / 2, sigma, i, sample]
-            r = pd.concat([r, df])
+        #Only one fit
+        result_all = gmodel5.fit(r_aut[col_r[1]], param5, s = r_aut[col_r[0]], fit_kws={"ftol":1e-22, "xtol":1e-22, "gtol":1e-22})
+        rc2_all = gmodel5.eval(result_all.params, s = 0)
+        rs_all = result_all.values['r_s']
+        rs_err = result_all.params['r_s'].stderr
+        sigma_all = 1/  (rs_all * thickness * 1e-7)
+        # sigma_err = 1/  (rs_err * thickness * 1e-7)
+        r_aut['Fit'] = result_all.best_fit
+        r_aut['Sample'] = sample        
+        values.loc[0] = [rs_all, rc2_all / 2, sigma_all, sample]
+        return df_aut, r_aut, values
+    
+path_aut = r'C:\Users\lopezb41\OneDrive - imec\Documents\Experiments\Data\Contact Resistance\LSB_07\0G_27'
+sample = '0G_27'
+files_aut = [os.path.join(path_aut, i) for i in os.listdir(path_aut)]
+
+rt, tlm, val = idea.fit(files_aut, 80, sample)
+    
+    
+    
+    
+    
+    
+    
+        # c = list(set([i[-10:-8] for i in files]))
+        # r = pd.DataFrame() 
+        # n = 0
+        # for i in c:
+        #     df = r_aut.loc[r_aut.Column == i].copy() # Specify that you are working with a copy, otherwise you get SettingWithCopyWarning
+        #     result = gmodel5.fit(df[col_r[1]], param5, s = df[col_r[0]])
+        #     rc2 = gmodel5.eval(result.params, s = 0)
+        #     rs = result.values['r_s']
+        #     sigma = 1/  (rs * thickness * 1e-7)
+        #     df.loc[:,('Fit')] = result.best_fit
+        #     df['Sample'] = sample
+        #     values.loc[n] = [rs, rc2 / 2, sigma, i, sample]
+        #     r = pd.concat([r, df])
         
-            n += 1     
-        
-        values.sort_values(by=['Column'])
-        return df_aut, r, values
+        #     n += 1     

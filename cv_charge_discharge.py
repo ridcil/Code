@@ -19,6 +19,7 @@ class Ec():
     def Electrochem(path, thickness):
         delith = pd.DataFrame()
         lith = pd.DataFrame()
+        cv_df = pd.DataFrame()
         for i in os.listdir(path):                          # make 3 folders in path: CV, delith, lith to separate files
             if 'CV' not in os.listdir(path):
                 os.mkdir(os.path.join(path, 'CV'))
@@ -57,13 +58,16 @@ class Ec():
                         label = 'Activation CV'
                     else:
                         label = 'Final CV'
+                    cv['CV'] = label
+                    cv_df = pd.concat([cv_df, cv])
+                    # cv_df['CV'] = label
                     sns.scatterplot(data = cv, x = cols[0], y = cols[1], edgecolor = None, s = 3, ax = ax, label = label)         
                 ax.legend(markerscale = 5)
                 plt.title(path[-5:])
                 plt.xlim(3.3,4.5)
-                # plt.show()                      # You can skip this line if you dont want thge Cv plot
+                plt.show()                      # You can skip this line if you dont want thge Cv plot
                 plt.close()
-                
+                                
         # Plot delith profiles
             elif 'delith' in i:
                 delith_files = [os.path.join(i, j) for j in os.listdir(i)]
@@ -79,13 +83,13 @@ class Ec():
                     capacity_d.loc[n] = [max(dl[cols2[3]]) /3.6 / (0.63 * 1e-7 * thickness), int(x[-6:-4])] # calculated capacity
                     n += 1
                 delith[_cap] = delith[cols2[3]] /3.6 / (0.63 * 1e-7 * thickness)
-                fig, ax = plt.subplots(1, 2, facecolor = 'white', dpi = dpi, figsize = figsize, gridspec_kw={'width_ratios': [3, 2]})
-                sns.lineplot(data = delith, x = _cap, y = cols2[1], hue = 'Cycle', palette=palette, legend = False, ax = ax[0], lw = linewidth)
-                plt.colorbar(cbar, ax = ax[0]).set_label('Cycle')
-                sns.scatterplot(data = capacity_d, x = 'Cycle', y = _cap, ax = ax[1])
-                plt.suptitle(path[-5:])
+                # fig, ax = plt.subplots(1, 2, facecolor = 'white', dpi = dpi, figsize = figsize, gridspec_kw={'width_ratios': [3, 2]})
+                # sns.lineplot(data = delith, x = _cap, y = cols2[1], hue = 'Cycle', palette=palette, legend = False, ax = ax[0], lw = linewidth)
+                # plt.colorbar(cbar, ax = ax[0]).set_label('Cycle')
+                # sns.scatterplot(data = capacity_d, x = 'Cycle', y = _cap, ax = ax[1])
+                # plt.suptitle(path[-5:])
                 # plt.show()                      # You can skip this line if you dont want thge Cv plot
-                plt.close()
+                # plt.close()
             
             # Same as above but for lithiation profiles
             elif '\lith' in i:
@@ -106,6 +110,9 @@ class Ec():
                 lith[_cap] = -1 * lith[cols2[3]] /3.6 / (0.63 * 1e-7 * thickness)
                 fig, ax = plt.subplots(1, 2, facecolor = 'white', dpi = dpi, figsize = figsize, gridspec_kw={'width_ratios': [3, 2]})
                 sns.lineplot(data = lith, x = _cap, y = cols2[1], hue = 'Cycle', palette=palette, legend = False, ax = ax[0], lw = linewidth)
+                #
+                sns.lineplot(data = delith, x = _cap, y = cols2[1], hue = 'Cycle', palette=palette, legend = False, ax = ax[0], lw = linewidth)
+                #                
                 plt.colorbar(cbar, ax = ax[0]).set_label('Cycle')
                 sns.scatterplot(data = capacity, x = 'Cycle', y = _cap, ax = ax[1])
                 plt.suptitle(path[-5:])
@@ -124,4 +131,4 @@ class Ec():
                 # plt.show()
                 # plt.close()
                 
-        return capacity     # Returns Data frame with lithiation data (capacity, cycle, sample)
+        return cv_df, capacity     # Returns Data frame with lithiation data (capacity, cycle, sample)
