@@ -16,10 +16,11 @@ _cap = 'Capacity (mAh/cm$^3$)'
 # label = ''
 
 class Ec():
-    def Electrochem(path, thickness, area):
+    def Electrochem(path, thickness, area, sample_name):
         delith = pd.DataFrame()
         lith = pd.DataFrame()
         cv_df = pd.DataFrame()
+        capacity = pd.DataFrame(columns = [_cap, 'Cycle', 'Sample', 'Average Current Density ($\mu$A/cm$^3$)'])
         for i in os.listdir(path):                          # make 3 folders in path: CV, delith, lith to separate files
             if 'CV' not in os.listdir(path):
                 os.mkdir(os.path.join(path, 'CV'))
@@ -44,10 +45,9 @@ class Ec():
                 os.renames(i, i[:-5] + '0' + str(m) + '.txt')
                 m += 1 
         files = [os.path.join(path, i)  for i in os.listdir(path) if i != 'README.txt']
-        
         # Plot CV, actiation and final together if both are available
         for i in files:                             
-            if '\CV' in i:
+            if '\CV' in i[-3:]:
                 cv_files = [os.path.join(i, j) for j in os.listdir(i)] 
                 cv_files.sort(reverse = True)
                 fig, ax = plt.subplots(facecolor = 'white', dpi = dpi)
@@ -63,7 +63,7 @@ class Ec():
                     # cv_df['CV'] = label
                     sns.scatterplot(data = cv, x = cols[0], y = cols[2], edgecolor = None, s = 3, ax = ax)#, palette=palette) #, label = label)         
                 # ax.legend(markerscale = 5)
-                plt.title(path[-7:])
+                plt.title(sample_name)
                 # plt.xlim(3.3,4.5)
                 plt.show()                      # You can skip this line if you dont want thge Cv plot
                 plt.close()
@@ -99,15 +99,14 @@ class Ec():
                 cbar = plt.contourf(Z, levels = np.arange(0, len(lith_files) + 1, 1), cmap=palette)
                 plt.clf()
                 n = 0
-                capacity = pd.DataFrame(columns = [_cap, 'Cycle', 'Sample', 'Average Current (A)'])
+                
                 
                 final_file = pd.DataFrame()
                 for x in lith_files:
                     l = pd.read_csv(x, sep = ';', names = cols2, usecols=[1,2,3,4,5], skiprows = 1)
-                    cols2[2]
                     l['Cycle'] = int(x[-6:-4])
                     lith = pd.concat([lith, l], ignore_index = True)
-                    capacity.loc[n] = [-1 * min(l[cols2[3]]) / 3.6 / (area * 1e-7 * thickness), int(x[-6:-4]), path[-7:], l[cols2[2]].mean()] # capacity equation. capacity = charge / 3.6 / area * thickness (cm)
+                    capacity.loc[n] = [-1 * min(l[cols2[3]]) / 3.6 / (area * 1e-7 * thickness), int(x[-6:-4]), sample_name, l[cols2[2]].mean() * 1e6 / area] # capacity equation. capacity = charge / 3.6 / area * thickness (cm)
                     final_file = pd.concat([final_file, capacity])
                     n += 1
                 lith[_cap] = -1 * lith[cols2[3]] /3.6 / (area * 1e-7 * thickness)
@@ -118,9 +117,14 @@ class Ec():
                 #                
                 plt.colorbar(cbar, ax = ax[0]).set_label('Cycle')
                 ax2 = ax[1].twinx()
-                sns.scatterplot(data = capacity, x = 'Cycle', y = _cap, ax = ax[1])
-                sns.scatterplot(data = capacity, x = 'Cycle', y = 'Average Current (A)', ax = ax2)
-                plt.suptitle(path[-7:])
+                sns.scatterplot(data = capacity, x = 'Cycle', y = _cap, ax = ax[1], label = 'Capacity')
+                # sns.scatterplot(data = capacity, x = 'Cycle', y = 'Average Current ($\mu$A)', markers = '^', ax = ax2, c = 'navy', label = 'Current')
+                ax2.scatter(capacity['Cycle'], capacity['Average Current Density ($\mu$A/cm$^3$)'], marker = '^', c = 'navy', label = 'Current')
+                ax2.set_ylim(min(capacity['Average Current Density ($\mu$A/cm$^3$)']) - 0.5, max(capacity['Average Current Density ($\mu$A/cm$^3$)']) + 0.5)
+                ax2.set_ylabel('Average Current Density ($\mu$A/cm$^3$)')
+                ax[1].legend(bbox_to_anchor=(0.3, 1.1), fontsize = 8, frameon = False)
+                ax2.legend(bbox_to_anchor=(0.95,1.1), fontsize = 8, frameon = False)
+                plt.suptitle(sample_name)
                 plt.show()
                 plt.close()
                 
@@ -136,4 +140,4 @@ class Ec():
                 # plt.show()
                 # plt.close()
                 
-        return cv_df, capacity     # Returns Data frame with lithiation data (capacity, cycle, sample)
+        return cv_df, capacity, lith, delith     # Returns Data frame with lithiation data (capacity, cycle, sample)
