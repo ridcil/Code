@@ -6,17 +6,17 @@ from lmfit import Model
 from scipy.stats import linregress
 import seaborn as sns
 
-palette = 'BuPu_r' # Theme for plot
+palette = 'BuPu' # Theme for plot
 dpi = 200 
 linewidth = 1
 figsize = [10,3]
-cols = ['Potential vs Li$^+$/Li (V)','Current Density ($\mu$A/cm$^2$)']
+cols = ['Potential vs Li$^+$/Li (V)', 'Current (A)', 'Current Density ($\mu$A/cm$^2$)', 'Scan']
 cols2 = ['Time (s)', cols[0], 'Current (A)', 'Charge (C)', 'Capacity (mAh cm$^{-3}$)']
 _cap = 'Capacity (mAh/cm$^3$)'
 # label = ''
 
 class Ec():
-    def Electrochem(path, thickness):
+    def Electrochem(path, thickness, area):
         delith = pd.DataFrame()
         lith = pd.DataFrame()
         cv_df = pd.DataFrame()
@@ -44,7 +44,7 @@ class Ec():
                 os.renames(i, i[:-5] + '0' + str(m) + '.txt')
                 m += 1 
         files = [os.path.join(path, i)  for i in os.listdir(path) if i != 'README.txt']
-
+        
         # Plot CV, actiation and final together if both are available
         for i in files:                             
             if '\CV' in i:
@@ -52,18 +52,18 @@ class Ec():
                 cv_files.sort(reverse = True)
                 fig, ax = plt.subplots(facecolor = 'white', dpi = dpi)
                 for x in cv_files:
-                    cv = pd.read_csv(x, names = cols, sep = ';', skiprows=1, usecols=[0, 4])
-                    cv[cols[1]] = cv[cols[1]] * 1e6 
+                    cv = pd.read_csv(x, names = cols, sep = ';', skiprows=1, usecols=[0, 1, 4,5])
+                    cv[cols[2]] = cv[cols[1]] / area * 1e6 
                     if '_Initial_' in x:
                         label = 'Activation CV'
                     else:
                         label = 'Final CV'
                     cv['CV'] = label
-                    cv_df = pd.concat([cv_df, cv])
+                    cv_df = cv
                     # cv_df['CV'] = label
-                    sns.scatterplot(data = cv, x = cols[0], y = cols[1], edgecolor = None, s = 3, ax = ax, label = label)         
-                ax.legend(markerscale = 5)
-                plt.title(path[-5:])
+                    sns.scatterplot(data = cv, x = cols[0], y = cols[2], edgecolor = None, s = 3, ax = ax)#, palette=palette) #, label = label)         
+                # ax.legend(markerscale = 5)
+                plt.title(path[-7:])
                 # plt.xlim(3.3,4.5)
                 plt.show()                      # You can skip this line if you dont want thge Cv plot
                 plt.close()
@@ -80,9 +80,9 @@ class Ec():
                     dl = pd.read_csv(x, sep = ';', names = cols2, usecols=[1,2,3,4,5], skiprows = 1)
                     dl['Cycle'] = int(x[-6:-4])
                     delith = pd.concat([delith, dl], ignore_index=True) # appending to data frame
-                    capacity_d.loc[n] = [max(dl[cols2[3]]) /3.6 / (0.63 * 1e-7 * thickness), int(x[-6:-4])] # calculated capacity
+                    capacity_d.loc[n] = [max(dl[cols2[3]]) /3.6 / (area * 1e-7 * thickness), int(x[-6:-4])] # calculated capacity
                     n += 1
-                delith[_cap] = delith[cols2[3]] /3.6 / (0.63 * 1e-7 * thickness)
+                delith[_cap] = delith[cols2[3]] /3.6 / (area * 1e-7 * thickness)
                 # fig, ax = plt.subplots(1, 2, facecolor = 'white', dpi = dpi, figsize = figsize, gridspec_kw={'width_ratios': [3, 2]})
                 # sns.lineplot(data = delith, x = _cap, y = cols2[1], hue = 'Cycle', palette=palette, legend = False, ax = ax[0], lw = linewidth)
                 # plt.colorbar(cbar, ax = ax[0]).set_label('Cycle')
@@ -94,28 +94,33 @@ class Ec():
             # Same as above but for lithiation profiles
             elif '\lith' in i:
                 lith_files = [os.path.join(i, j) for j in os.listdir(i)]
+                # print(lith_files)
                 Z = [[0,0],[0,0]]
                 cbar = plt.contourf(Z, levels = np.arange(0, len(lith_files) + 1, 1), cmap=palette)
                 plt.clf()
                 n = 0
-                capacity = pd.DataFrame(columns = [_cap, 'Cycle', 'Sample'])
+                capacity = pd.DataFrame(columns = [_cap, 'Cycle', 'Sample', 'Average Current (A)'])
+                
                 final_file = pd.DataFrame()
                 for x in lith_files:
                     l = pd.read_csv(x, sep = ';', names = cols2, usecols=[1,2,3,4,5], skiprows = 1)
+                    cols2[2]
                     l['Cycle'] = int(x[-6:-4])
                     lith = pd.concat([lith, l], ignore_index = True)
-                    capacity.loc[n] = [-1 * min(l[cols2[3]]) /3.6 / (0.63 * 1e-7 * thickness), int(x[-6:-4]), path[-5:]] # capacity equation. capacity = charge / 3.6 / area * thickness (cm)
+                    capacity.loc[n] = [-1 * min(l[cols2[3]]) / 3.6 / (area * 1e-7 * thickness), int(x[-6:-4]), path[-7:], l[cols2[2]].mean()] # capacity equation. capacity = charge / 3.6 / area * thickness (cm)
                     final_file = pd.concat([final_file, capacity])
                     n += 1
-                lith[_cap] = -1 * lith[cols2[3]] /3.6 / (0.63 * 1e-7 * thickness)
+                lith[_cap] = -1 * lith[cols2[3]] /3.6 / (area * 1e-7 * thickness)
                 fig, ax = plt.subplots(1, 2, facecolor = 'white', dpi = dpi, figsize = figsize, gridspec_kw={'width_ratios': [3, 2]})
                 sns.lineplot(data = lith, x = _cap, y = cols2[1], hue = 'Cycle', palette=palette, legend = False, ax = ax[0], lw = linewidth)
                 #
                 sns.lineplot(data = delith, x = _cap, y = cols2[1], hue = 'Cycle', palette=palette, legend = False, ax = ax[0], lw = linewidth)
                 #                
                 plt.colorbar(cbar, ax = ax[0]).set_label('Cycle')
+                ax2 = ax[1].twinx()
                 sns.scatterplot(data = capacity, x = 'Cycle', y = _cap, ax = ax[1])
-                plt.suptitle(path[-5:])
+                sns.scatterplot(data = capacity, x = 'Cycle', y = 'Average Current (A)', ax = ax2)
+                plt.suptitle(path[-7:])
                 plt.show()
                 plt.close()
                 
