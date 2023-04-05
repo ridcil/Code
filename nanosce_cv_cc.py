@@ -71,73 +71,78 @@ class Ec():
         # Plot delith profiles
             elif 'delith' in i:
                 delith_files = [os.path.join(i, j) for j in os.listdir(i)]
-                Z = [[0,0],[0,0]]                                                                       # Creates color bar
-                cbar = plt.contourf(Z, levels = np.arange(0, len(delith_files) + 1, 1), cmap=palette)
-                plt.clf()
-                n = 0
-                capacity_d = pd.DataFrame(columns = [_cap, 'Cycle'])    # empty dataframe to allocate calculated capacity
-                for x in delith_files:
-                    dl = pd.read_csv(x, sep = ';', names = cols2, usecols=[1,2,3,4,5], skiprows = 1)
-                    dl['Cycle'] = int(x[-6:-4])
-                    delith = pd.concat([delith, dl], ignore_index=True) # appending to data frame
-                    capacity_d.loc[n] = [max(dl[cols2[3]]) /3.6 / (area * 1e-7 * thickness), int(x[-6:-4])] # calculated capacity
-                    n += 1
-                delith[_cap] = delith[cols2[3]] /3.6 / (area * 1e-7 * thickness)
-                # fig, ax = plt.subplots(1, 2, facecolor = 'white', dpi = dpi, figsize = figsize, gridspec_kw={'width_ratios': [3, 2]})
-                # sns.lineplot(data = delith, x = _cap, y = cols2[1], hue = 'Cycle', palette=palette, legend = False, ax = ax[0], lw = linewidth)
-                # plt.colorbar(cbar, ax = ax[0]).set_label('Cycle')
-                # sns.scatterplot(data = capacity_d, x = 'Cycle', y = _cap, ax = ax[1])
-                # plt.suptitle(path[-5:])
-                # plt.show()                      # You can skip this line if you dont want thge Cv plot
-                # plt.close()
+                if len(delith_files) < 1:
+                    pass
+                else:
+                    Z = [[0,0],[0,0]]                                                                       # Creates color bar
+                    cbar = plt.contourf(Z, levels = np.arange(0, len(delith_files) + 1, 1), cmap=palette)
+                    plt.clf()
+                    n = 0
+                    capacity_d = pd.DataFrame(columns = [_cap, 'Cycle'])    # empty dataframe to allocate calculated capacity
+                    for x in delith_files:
+                        dl = pd.read_csv(x, sep = ';', names = cols2, usecols=[1,2,3,4,5], skiprows = 1)
+                        dl['Cycle'] = int(x[-6:-4])
+                        delith = pd.concat([delith, dl], ignore_index=True) # appending to data frame
+                        capacity_d.loc[n] = [max(dl[cols2[3]]) /3.6 / (area * 1e-7 * thickness), int(x[-6:-4])] # calculated capacity
+                        n += 1
+                    delith[_cap] = delith[cols2[3]] /3.6 / (area * 1e-7 * thickness)
+                    # fig, ax = plt.subplots(1, 2, facecolor = 'white', dpi = dpi, figsize = figsize, gridspec_kw={'width_ratios': [3, 2]})
+                    # sns.lineplot(data = delith, x = _cap, y = cols2[1], hue = 'Cycle', palette=palette, legend = False, ax = ax[0], lw = linewidth)
+                    # plt.colorbar(cbar, ax = ax[0]).set_label('Cycle')
+                    # sns.scatterplot(data = capacity_d, x = 'Cycle', y = _cap, ax = ax[1])
+                    # plt.suptitle(path[-5:])
+                    # plt.show()                      # You can skip this line if you dont want thge Cv plot
+                    # plt.close()
             
             # Same as above but for lithiation profiles
             elif '\lith' in i:
                 lith_files = [os.path.join(i, j) for j in os.listdir(i)]
-                # print(lith_files)
-                Z = [[0,0],[0,0]]
-                cbar = plt.contourf(Z, levels = np.arange(0, len(lith_files) + 1, 1), cmap=palette)
-                plt.clf()
-                n = 0
-                
-                
-                final_file = pd.DataFrame()
-                for x in lith_files:
-                    l = pd.read_csv(x, sep = ';', names = cols2, usecols=[1,2,3,4,5], skiprows = 1)
-                    l['Cycle'] = int(x[-6:-4])
-                    lith = pd.concat([lith, l], ignore_index = True)
-                    capacity.loc[n] = [-1 * min(l[cols2[3]]) / 3.6 / (area * 1e-7 * thickness), int(x[-6:-4]), sample_name, l[cols2[2]].mean() * 1e6 / area] # capacity equation. capacity = charge / 3.6 / area * thickness (cm)
-                    final_file = pd.concat([final_file, capacity])
-                    n += 1
-                lith[_cap] = -1 * lith[cols2[3]] /3.6 / (area * 1e-7 * thickness)
-                fig, ax = plt.subplots(1, 2, facecolor = 'white', dpi = dpi, figsize = figsize, gridspec_kw={'width_ratios': [3, 2]})
-                sns.lineplot(data = lith, x = _cap, y = cols2[1], hue = 'Cycle', palette=palette, legend = False, ax = ax[0], lw = linewidth)
-                #
-                sns.lineplot(data = delith, x = _cap, y = cols2[1], hue = 'Cycle', palette=palette, legend = False, ax = ax[0], lw = linewidth)
-                #                
-                plt.colorbar(cbar, ax = ax[0]).set_label('Cycle')
-                ax2 = ax[1].twinx()
-                sns.scatterplot(data = capacity, x = 'Cycle', y = _cap, ax = ax[1], label = 'Capacity')
-                # sns.scatterplot(data = capacity, x = 'Cycle', y = 'Average Current ($\mu$A)', markers = '^', ax = ax2, c = 'navy', label = 'Current')
-                ax2.scatter(capacity['Cycle'], capacity['Average Current Density ($\mu$A/cm$^3$)'], marker = '^', c = 'navy', label = 'Current')
-                ax2.set_ylim(min(capacity['Average Current Density ($\mu$A/cm$^3$)']) - 0.5, max(capacity['Average Current Density ($\mu$A/cm$^3$)']) + 0.5)
-                ax2.set_ylabel('Average Current Density ($\mu$A/cm$^3$)')
-                ax[1].legend(bbox_to_anchor=(0.3, 1.1), fontsize = 8, frameon = False)
-                ax2.legend(bbox_to_anchor=(0.95,1.1), fontsize = 8, frameon = False)
-                plt.suptitle(sample_name)
-                plt.show()
-                plt.close()
-                
-                # fig, ax = plt.subplots(dpi = dpi)
-                # sns.lineplot(data = lith, x = cols2[0], y = cols2[1], hue = 'Cycle', palette=palette)
-                # plt.suptitle(path[-5:])
-                # plt.show()
-                # plt.close()
-                
-                # fig, ax = plt.subplots(dpi = dpi)
-                # sns.lineplot(data = lith, x = cols2[0], y = cols2[2])
-                # plt.suptitle(path[-5:])
-                # plt.show()
-                # plt.close()
+                if len(lith_files) < 1:
+                    pass
+                else:
+                    Z = [[0,0],[0,0]]
+                    cbar = plt.contourf(Z, levels = np.arange(0, len(lith_files) + 1, 1), cmap=palette)
+                    plt.clf()
+                    n = 0
+                    
+                    
+                    final_file = pd.DataFrame()
+                    for x in lith_files:
+                        l = pd.read_csv(x, sep = ';', names = cols2, usecols=[1,2,3,4,5], skiprows = 1)
+                        l['Cycle'] = int(x[-6:-4])
+                        lith = pd.concat([lith, l], ignore_index = True)
+                        capacity.loc[n] = [-1 * min(l[cols2[3]]) / 3.6 / (area * 1e-7 * thickness), int(x[-6:-4]), sample_name, l[cols2[2]].mean() * 1e6 / area] # capacity equation. capacity = charge / 3.6 / area * thickness (cm)
+                        final_file = pd.concat([final_file, capacity])
+                        n += 1
+                    lith[_cap] = -1 * lith[cols2[3]] /3.6 / (area * 1e-7 * thickness)
+                    fig, ax = plt.subplots(1, 2, facecolor = 'white', dpi = dpi, figsize = figsize, gridspec_kw={'width_ratios': [3, 2]})
+                    sns.lineplot(data = lith, x = _cap, y = cols2[1], hue = 'Cycle', palette=palette, legend = False, ax = ax[0], lw = linewidth)
+                    #
+                    sns.lineplot(data = delith, x = _cap, y = cols2[1], hue = 'Cycle', palette=palette, legend = False, ax = ax[0], lw = linewidth)
+                    #                
+                    plt.colorbar(cbar, ax = ax[0]).set_label('Cycle')
+                    ax2 = ax[1].twinx()
+                    sns.scatterplot(data = capacity, x = 'Cycle', y = _cap, ax = ax[1], label = 'Capacity')
+                    # sns.scatterplot(data = capacity, x = 'Cycle', y = 'Average Current ($\mu$A)', markers = '^', ax = ax2, c = 'navy', label = 'Current')
+                    ax2.scatter(capacity['Cycle'], capacity['Average Current Density ($\mu$A/cm$^3$)'], marker = '^', c = 'navy', label = 'Current')
+                    ax2.set_ylim(min(capacity['Average Current Density ($\mu$A/cm$^3$)']) - 0.5, max(capacity['Average Current Density ($\mu$A/cm$^3$)']) + 0.5)
+                    ax2.set_ylabel('Average Current Density ($\mu$A/cm$^3$)')
+                    ax[1].legend(bbox_to_anchor=(0.3, 1.1), fontsize = 8, frameon = False)
+                    ax2.legend(bbox_to_anchor=(0.95,1.1), fontsize = 8, frameon = False)
+                    plt.suptitle(sample_name)
+                    plt.show()
+                    plt.close()
+                    
+                    # fig, ax = plt.subplots(dpi = dpi)
+                    # sns.lineplot(data = lith, x = cols2[0], y = cols2[1], hue = 'Cycle', palette=palette)
+                    # plt.suptitle(path[-5:])
+                    # plt.show()
+                    # plt.close()
+                    
+                    # fig, ax = plt.subplots(dpi = dpi)
+                    # sns.lineplot(data = lith, x = cols2[0], y = cols2[2])
+                    # plt.suptitle(path[-5:])
+                    # plt.show()
+                    # plt.close()
                 
         return cv_df, capacity, lith, delith     # Returns Data frame with lithiation data (capacity, cycle, sample)
