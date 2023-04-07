@@ -48,9 +48,26 @@ class idea():
                 df['Spacing ($\mu$m)'] = 20e-4
                 r_aut.loc[n] = [20e-4, 1/slope, i[-10:-8]]
             df['Column'] = i[-10:-8]
-            df_aut = pd.concat([df_aut, df])
+            df_aut = pd.concat([df_aut, df], ignore_index=True)
             n += 1
-
+            
+        # Weight by 1/std**2
+        spac = [2e-4, 5e-4, 10e-4, 20e-4]
+        average_df = pd.DataFrame()
+        weights = pd.DataFrame()
+        for i in spac:
+            df = r_aut[r_aut[col_r[0]] == i].mean()
+            df2 = r_aut[r_aut[col_r[0]] == i].copy()
+            std = np.std(df2['Resistance'])
+            df['Weight'] = 1 / std ** 2
+            # df2['Weight'] = 1 / std ** 2
+            average_df = pd.concat([average_df, df], axis=1)
+            weights = pd.concat([weights, df2], ignore_index=True)
+        average_df = average_df.T.reset_index(drop = True)
+        
+        print(weights)
+        print(average_df)
+        
         #Only one fit
         result_all = gmodel5.fit(r_aut[col_r[1]], param5, s = r_aut[col_r[0]], fit_kws={"ftol":1e-22, "xtol":1e-22, "gtol":1e-22})
         rc2_all = gmodel5.eval(result_all.params, s = 0)
@@ -63,11 +80,11 @@ class idea():
         values.loc[0] = [rs_all, rc2_all / 2, sigma_all, sample]
         return df_aut, r_aut, values
     
-path_aut = r'C:\Users\lopezb41\OneDrive - imec\Documents\Experiments\Data\Contact Resistance\LSB_07\0G_27'
-sample = '0G_27'
-files_aut = [os.path.join(path_aut, i) for i in os.listdir(path_aut)]
+# path_aut = r'C:\Users\lopezb41\OneDrive - imec\Documents\Experiments\Data\Contact Resistance\LSB_07\0G_27'
+# sample = '0G_27'
+# files_aut = [os.path.join(path_aut, i) for i in os.listdir(path_aut)]
 
-rt, tlm, val = idea.fit(files_aut, 80, sample)
+# rt, tlm, val = idea.fit(files_aut, 80, sample)
     
     
     
