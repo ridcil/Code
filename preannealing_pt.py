@@ -23,6 +23,7 @@ class Ec():
         capacity = pd.DataFrame(columns = [_cap, 'Cycle', 'Sample', 'Average Current Density ($\mu$A/cm$^3$)', 'Charge/Discharge'])
         capacity_d = pd.DataFrame(columns = [_cap, 'Cycle', 'Sample', 'Average Current Density ($\mu$A/cm$^3$)', 'Charge/Discharge'])
         final_file = pd.DataFrame()
+        efficiency = pd.DataFrame()
         for i in os.listdir(path):                          # make 3 folders in path: CV, delith, lith to separate files
             if 'CV' not in os.listdir(path):
                 os.mkdir(os.path.join(path, 'CV'))
@@ -61,13 +62,13 @@ class Ec():
                     else:
                         label = 'Final CV'
                     cv['CV'] = label
-                    cv_df = cv
+                    cv_df = pd.concat([cv_df, cv])
                     # cv_df['CV'] = label
                     sns.scatterplot(data = cv, x = cols[0], y = cols[2], edgecolor = None, s = 3, ax = ax)#, palette=palette) #, label = label)         
                 # ax.legend(markerscale = 5)
                 plt.title(sample_name)
                 # plt.xlim(3.3,4.5)
-                plt.show()                      # You can skip this line if you dont want thge Cv plot
+                # plt.show()                      # You can skip this line if you dont want thge Cv plot
                 plt.close()
                                 
         # Plot delith profiles
@@ -84,11 +85,16 @@ class Ec():
                         dl = pd.read_csv(x, sep = ';', names = cols2, usecols=[1,2,3,4,5], skiprows = 1)
                         dl['Cycle'] = int(x[-6:-4])
                         delith = pd.concat([delith, dl], ignore_index=True) # appending to data frame
-                        capacity_d.loc[n] = [max(dl[cols2[3]]) /3.6 / (area * 1e-7 * thickness), int(x[-6:-4]), sample_name, dl[cols2[2]].mean() * 1e6 / area, ''] # calculated capacity
+                        c_d = max(dl[cols2[3]]) /3.6 / (area * 1e-7 * thickness)
+                        capacity_d.loc[n] = [c_d, int(x[-6:-4]), sample_name, dl[cols2[2]].mean() * 1e6 / area, ''] # calculated capacity
                         capacity_d['Charge/Discharge'] = 'Charge'
-                        final_file = pd.concat([final_file, capacity_d])
+                       
+                        # final_file = pd.concat([final_file, capacity_d], ignore_index = True)
+                        # print(final_file)
                         n += 1
+                    
                     delith[_cap] = delith[cols2[3]] /3.6 / (area * 1e-7 * thickness)
+                    
                     # fig, ax = plt.subplots(1, 2, facecolor = 'white', dpi = dpi, figsize = figsize, gridspec_kw={'width_ratios': [3, 2]})
                     # sns.lineplot(data = delith, x = _cap, y = cols2[1], hue = 'Cycle', palette=palette, legend = False, ax = ax[0], lw = linewidth)
                     # plt.colorbar(cbar, ax = ax[0]).set_label('Cycle')
@@ -113,20 +119,20 @@ class Ec():
                         lith = pd.concat([lith, l], ignore_index = True)
                         capacity.loc[n] = [-1 * min(l[cols2[3]]) / 3.6 / (area * 1e-7 * thickness), int(x[-6:-4]), sample_name, l[cols2[2]].mean() * 1e6 / area, ''] # capacity equation. capacity = charge / 3.6 / area * thickness (cm)
                         capacity['Charge/Discharge'] = 'Discharge'
-                        final_file = pd.concat([final_file, capacity])
                         n += 1
                     lith[_cap] = -1 * lith[cols2[3]] /3.6 / (area * 1e-7 * thickness)
                     
                     
+                    ######
+                    # fig, ax = plt.subplots(1, 3, facecolor = 'white', dpi = dpi, figsize = figsize) #, gridspec_kw={'width_ratios': [3, 2]})
+                    # sns.lineplot(data = lith, x = _cap, y = cols2[1], hue = 'Cycle', palette=palette, legend = False, ax = ax[0], lw = linewidth)
+                    # #
+                    # sns.lineplot(data = delith, x = _cap, y = cols2[1], hue = 'Cycle', palette=palette, legend = False, ax = ax[0], lw = linewidth)
+                    # #                
+                    # plt.colorbar(cbar, ax = ax[0]).set_label('Cycle')
+                    # # ax2 = ax[1].twinx()
+                    # sns.scatterplot(data = capacity, x = 'Cycle', y = _cap, ax = ax[1]) # hue = 'Charge/Discharge')
                     
-                    fig, ax = plt.subplots(1, 3, facecolor = 'white', dpi = dpi, figsize = figsize) #, gridspec_kw={'width_ratios': [3, 2]})
-                    sns.lineplot(data = lith, x = _cap, y = cols2[1], hue = 'Cycle', palette=palette, legend = False, ax = ax[0], lw = linewidth)
-                    #
-                    sns.lineplot(data = delith, x = _cap, y = cols2[1], hue = 'Cycle', palette=palette, legend = False, ax = ax[0], lw = linewidth)
-                    #                
-                    plt.colorbar(cbar, ax = ax[0]).set_label('Cycle')
-                    # ax2 = ax[1].twinx()
-                    sns.scatterplot(data = final_file, x = 'Cycle', y = _cap, ax = ax[1], hue = 'Charge/Discharge')
                     
                     
                     # sns.scatterplot(data = capacity, x = 'Cycle', y = 'Average Current ($\mu$A)', markers = '^', ax = ax2, c = 'navy', label = 'Current')
@@ -136,7 +142,7 @@ class Ec():
                     # ax[1].legend(bbox_to_anchor=(0.3, 1.1), fontsize = 8, frameon = False)
                     # ax2.legend(bbox_to_anchor=(0.95,1.1), fontsize = 8, frameon = False)
                     plt.suptitle(sample_name)
-                    plt.show()
+                    # plt.show()
                     plt.close()
                     
                     # fig, ax = plt.subplots(dpi = dpi)
@@ -150,5 +156,16 @@ class Ec():
                     # plt.suptitle(path[-5:])
                     # plt.show()
                     # plt.close()
-                
-        return cv_df, final_file, lith, delith     # Returns Data frame with lithiation data (capacity, cycle, sample)
+        efficiency['Efficiency (%)'] = capacity[_cap] / capacity_d[_cap] * 100
+        efficiency['Cycle'] = capacity['Cycle']
+        efficiency['Sample'] = sample_name
+        final_file = pd.concat([capacity_d, capacity], ignore_index=True)     
+        # print(final_file)              
+        return cv_df, final_file, lith, delith, efficiency     # Returns Data frame with lithiation data (capacity, cycle, sample)
+    
+# path_ref = r'C:\Users\lopezb41\OneDrive - imec\Documents\Experiments\Data\Electrochemical\LSB_09\0I_20'
+# sample = 'LMOref not annealed Pt 0I_20'
+# df_cv_lmo_ref_na, capacity_lmo_ref_na, lith_lmo_ref_na, delith_lmo_ref_na = Ec.Electrochem(path_ref, 80, 0.63, sample)
+# data = [df_cv_lmo_ref_na, capacity_lmo_ref_na, lith_lmo_ref_na, delith_lmo_ref_na]
+# for i in data:
+#     i['Sample'] = sample
