@@ -56,38 +56,40 @@ class idea():
         average_df = pd.DataFrame()
         weights = pd.DataFrame()
         for i in spac:
-            df = r_aut[r_aut[col_r[0]] == i].mean()
+            df = r_aut[r_aut[col_r[0]] == i].mean(numeric_only=True)
             df2 = r_aut[r_aut[col_r[0]] == i].copy()
-            std = np.std(df2['Resistance'])
-            df['Weight'] = 1 / std ** 2
+            std = np.std(df2[col_r[1]])
+            df['Weight'] = 1 / std# ** 2
             # df2['Weight'] = 1 / std ** 2
             average_df = pd.concat([average_df, df], axis=1)
             weights = pd.concat([weights, df2], ignore_index=True)
         average_df = average_df.T.reset_index(drop = True)
         
-        print(weights)
-        print(average_df)
+        # print(weights)
+    
         
         #Only one fit
-        result_all = gmodel5.fit(r_aut[col_r[1]], param5, s = r_aut[col_r[0]], fit_kws={"ftol":1e-22, "xtol":1e-22, "gtol":1e-22})
+        # result_all = gmodel5.fit(r_aut[col_r[1]], param5, s = r_aut[col_r[0]], fit_kws={"ftol":1e-22, "xtol":1e-22, "gtol":1e-22})
+        result_all = gmodel5.fit(average_df[col_r[1]], param5, s = average_df[col_r[0]], fit_kws={"ftol":1e-22, "xtol":1e-22, "gtol":1e-22}, weights = average_df['Weight'])
         rc2_all = gmodel5.eval(result_all.params, s = 0)
         rs_all = result_all.values['r_s']
         rs_err = result_all.params['r_s'].stderr
         sigma_all = 1/  (rs_all * thickness * 1e-7)
         # sigma_err = 1/  (rs_err * thickness * 1e-7)
-        r_aut['Fit'] = result_all.best_fit
-        r_aut['Sample'] = sample        
+        average_df['Fit'] = result_all.best_fit
+        average_df['Sample'] = sample        
         values.loc[0] = [rs_all, rc2_all / 2, sigma_all, sample]
-        return df_aut, r_aut, values
+        return df_aut, average_df, values
     
-# path_aut = r'C:\Users\lopezb41\OneDrive - imec\Documents\Experiments\Data\Contact Resistance\LSB_07\0G_27'
-# sample = '0G_27'
-# files_aut = [os.path.join(path_aut, i) for i in os.listdir(path_aut)]
+path_aut = r'C:\Users\lopezb41\OneDrive - imec\Documents\Experiments\Data\Contact Resistance\LSB_07\0G_33'
+sample = '0G_33'
+files_aut = [os.path.join(path_aut, i) for i in os.listdir(path_aut)]
 
-# rt, tlm, val = idea.fit(files_aut, 80, sample)
-    
-    
-    
+rt, tlm, val = idea.fit(files_aut, 80, sample)
+print(tlm)
+sns.scatterplot(data = tlm, x = 'Spacing ($\mu$m)', y = 'Resistance (M$\Omega$)')#, style = 'Column')
+plt.plot(tlm['Spacing ($\mu$m)'], tlm['Fit'] )
+plt.show()
     
     
     
