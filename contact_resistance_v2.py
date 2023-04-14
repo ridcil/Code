@@ -59,7 +59,7 @@ class idea():
             df = r_aut[r_aut[col_r[0]] == i].mean(numeric_only=True)
             df2 = r_aut[r_aut[col_r[0]] == i].copy()
             std = np.std(df2[col_r[1]])
-            df['Weight'] = 1 / std# ** 2
+            df['Weight'] = 1 / std ** 2
             # df2['Weight'] = 1 / std ** 2
             average_df = pd.concat([average_df, df], axis=1)
             weights = pd.concat([weights, df2], ignore_index=True)
