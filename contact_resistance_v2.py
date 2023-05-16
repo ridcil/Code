@@ -81,15 +81,15 @@ class idea():
         values.loc[0] = [rs_all, rc2_all / 2, sigma_all, sample]
         return df_aut, average_df, values
     
-path_aut = r'C:\Users\lopezb41\OneDrive - imec\Documents\Experiments\Data\Contact Resistance\LSB_07\0G_33'
-sample = '0G_33'
-files_aut = [os.path.join(path_aut, i) for i in os.listdir(path_aut)]
+# path_aut = r'C:\Users\lopezb41\OneDrive - imec\Documents\Experiments\Data\Contact Resistance\LSB_07\0G_33'
+# sample = '0G_33'
+# files_aut = [os.path.join(path_aut, i) for i in os.listdir(path_aut)]
 
-rt, tlm, val = idea.fit(files_aut, 80, sample)
-print(tlm)
-sns.scatterplot(data = tlm, x = 'Spacing ($\mu$m)', y = 'Resistance (M$\Omega$)')#, style = 'Column')
-plt.plot(tlm['Spacing ($\mu$m)'], tlm['Fit'] )
-plt.show()
+# rt, tlm, val = idea.fit(files_aut, 80, sample)
+# print(tlm)
+# sns.scatterplot(data = tlm, x = 'Spacing ($\mu$m)', y = 'Resistance (M$\Omega$)')#, style = 'Column')
+# plt.plot(tlm['Spacing ($\mu$m)'], tlm['Fit'] )
+# plt.show()
     
     
     
