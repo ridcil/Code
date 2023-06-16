@@ -123,13 +123,13 @@ class Application(tk.Frame):
                     n +=1
                 ax1.legend(['Average', 'MinMax'])
             elif 'TiO2' in i:
-                ax1.scatter(dc_bias_spc.index, dc_bias_spc['Average Bias'], marker='s', color = 'tab:blue')
-                ax1.set_ylabel('Average DC Bias during deposition (V)')
+                ax2.scatter(dc_bias_spc.index, dc_bias_spc['Average Bias'], marker='s', color = 'tab:blue')
+                ax2.set_ylabel('Average DC Bias during deposition (V)')
                 n = 0
                 for i in dc_bias_spc.values:
-                    ax1.plot([n, n], [i[1], i[2]], color = 'red')
+                    ax2.plot([n, n], [i[1], i[2]], color = 'red')
                     n +=1
-                ax1.legend(['Average', 'MinMax'])
+                ax2.legend(['Average', 'MinMax'])
                 
                 
                 
