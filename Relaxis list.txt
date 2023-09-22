@@ -1,0 +1,9 @@
+Relaxis list of potentials
+
+3.9
+3.95
+4
+4.05
+4.1
+4.15
+4.2
